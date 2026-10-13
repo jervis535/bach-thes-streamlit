@@ -9,19 +9,19 @@ def render_sidebar():
         st.divider()
 
         st.page_link(
-            "app.py", 
-            label="Home", 
-            icon="🏠"
+            "pages/clustering.py", 
+            label="Clustering", 
+            icon="📊"
         )
         st.page_link(
-            "pages/dashboard.py",
-            label="Dashboard",
-            icon="📊",
+            "pages/panel_regression.py",
+            label="Panel Regression",
+            icon="📈",
         )
         st.page_link(
-            "pages/settings.py",
-            label="Settings",
-            icon="⚙️",
+            "pages/instructions.py",
+            label="Instructions",
+            icon="📋",
         )
 
         st.divider()
