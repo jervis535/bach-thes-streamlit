@@ -8,7 +8,11 @@ def render_sidebar():
 
         st.divider()
 
-        st.page_link("app.py", label="Home", icon="🏠")
+        st.page_link(
+            "app.py", 
+            label="Home", 
+            icon="🏠"
+        )
         st.page_link(
             "pages/dashboard.py",
             label="Dashboard",
