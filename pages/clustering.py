@@ -1,5 +1,6 @@
 import streamlit as st
 from components.sidebar import render_sidebar
+from services.clustering import clustering
 
 
 st.set_page_config(
@@ -83,3 +84,133 @@ if uploaded_file is not None:
 
     except Exception as e:
         st.error(f"Could not read the uploaded file: {e}")
+
+
+# Run clustering
+st.divider()
+st.subheader("Clustering Analysis")
+
+if min_clusters > max_clusters:
+    st.error(
+        "Minimum clusters cannot exceed maximum clusters."
+    )
+else:
+    run_clustering = st.button(
+        "Run Clustering",
+        type="primary",
+        use_container_width=True,
+    )
+
+    if run_clustering:
+        try:
+            with st.spinner(
+                "Running data transformation, PCA, "
+                "and K-Means clustering..."
+            ):
+
+
+                results = clustering(
+                    df,
+                    int(min_clusters),
+                    int(max_clusters),
+                )
+
+            st.success("Clustering completed successfully!")
+
+            # 1. Evaluation metrics
+            st.subheader("Cluster Evaluation")
+
+            metrics_df = results["metrics_df"]
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.metric(
+                    "Best Silhouette k",
+                    results["best_silhouette_k"],
+                )
+
+            with col2:
+                st.metric(
+                    "Best DBI k",
+                    results["best_dbi_k"],
+                )
+
+            st.dataframe(
+                metrics_df.round(4),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            # 2. Evaluation plots
+            st.subheader("Cluster Selection Plots")
+            st.pyplot(results["fig"])
+            import matplotlib.pyplot as plt
+            plt.close(results["fig"])
+
+            # 3. PCA summary
+            st.subheader("PCA Summary")
+
+            pca_summary = results["pca_summary"].copy()
+            pca_summary["variance_explained"] *= 100
+
+            st.dataframe(
+                pca_summary.rename(columns={
+                    "variable": "Variable",
+                    "n_original": "Original Features",
+                    "n_components": "PCA Components",
+                    "variance_explained": "Variance Explained (%)",
+                }).round(2),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            # 4. Clustered dataset
+            st.subheader("Clustered Dataset")
+
+            clustered_df = results["clustered_df"]
+
+            st.dataframe(
+                clustered_df,
+                use_container_width=True,
+            )
+
+            st.write(
+                "**Rows after cleaning:**",
+                len(clustered_df),
+            )
+
+            st.write(
+                "**Cluster distribution:**"
+            )
+
+            distribution = (
+                clustered_df["cluster"]
+                .value_counts()
+                .sort_index()
+                .rename_axis("Cluster")
+                .reset_index(name="Number of rows")
+            )
+
+            st.dataframe(
+                distribution,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            # 5. Download results
+            csv_data = clustered_df.to_csv(
+                index=False
+            ).encode("utf-8")
+
+            st.download_button(
+                "Download Clustered Dataset",
+                data=csv_data,
+                file_name="clustered_dataset.csv",
+                mime="text/csv",
+            )
+
+        except Exception as e:
+            st.error(
+                f"Clustering failed: {e}"
+            )
