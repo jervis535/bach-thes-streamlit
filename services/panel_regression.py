@@ -64,13 +64,11 @@ def run_panel_regression(
             result = {
                 "DependentVar": dep,
                 "IndependentVar": indep,
-                "Observations": 0,
                 "RECoef": np.nan,
                 "REp-Value": np.nan,
                 "FECoef": np.nan,
                 "FEp-Value": np.nan,
                 "Hausmanp-Value": np.nan,
-                "Status": "OK",
             }
 
             try:
@@ -106,8 +104,6 @@ def run_panel_regression(
                     raise ValueError(
                         "Duplicate entity-year observations."
                     )
-
-                result["Observations"] = len(data)
 
                 if data.empty:
                     raise ValueError("No usable observations.")
@@ -166,14 +162,9 @@ def run_panel_regression(
                     result["Hausmanp-Value"] = hausman(
                         fe_result, re_result
                     )
-                else:
-                    result["Status"] = (
-                        "Hausman unavailable: coefficient "
-                        "not estimable in both models."
-                    )
 
             except Exception as exc:
-                result["Status"] = str(exc)
+                st.write("something went wrong")
 
             results.append(result)
 

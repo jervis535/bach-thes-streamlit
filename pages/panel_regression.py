@@ -138,15 +138,15 @@ def render_role(title, role, options):
 # Page
 # ---------------------------------------------------------------------------
 st.title("Panel Regression")
-st.write("Upload your dataset and configure the number of clusters.")
+st.write("Upload your dataset and configure the dependent and independent variables.")
 
 st.divider()
 
 # 1. File uploader
-st.subheader("Upload Dataset")
+st.subheader("Upload dataset")
 
 uploaded_file = st.file_uploader(
-    "Choose a CSV or Excel file",
+    "Upload a .cxv or .xlsx file",
     type=["csv", "xlsx"],
     accept_multiple_files=False,
     help="Only .csv and .xlsx files are accepted.",
@@ -169,11 +169,8 @@ if uploaded_file is not None:
 
         st.success(f"File uploaded successfully: {uploaded_file.name}")
 
-        st.subheader("Dataset Preview")
+        st.subheader("Dataset preview")
         st.dataframe(df.head(), use_container_width=True)
-
-        st.write(f"**Rows:** {df.shape[0]}")
-        st.write(f"**Columns:** {df.shape[1]}")
 
     except Exception as e:
         st.error(f"Could not read the uploaded file: {e}")
@@ -210,9 +207,7 @@ if uploaded_file is not None:
     if time_vars:
         years = sorted({y for ys in time_vars.values() for y in ys})
         st.caption(
-            f"Detected {len(time_vars)} time-varying variables ({years[0]}–{years[-1]}) "
-            f"and {len(static_numeric)} static numeric columns. "
-            f"Entity column: **{entity_col}**."
+            f"Detected {len(time_vars)} time-varying variables ({years[0]}–{years[-1]})"
         )
     if df[entity_col].duplicated().any():
         st.warning(
@@ -223,7 +218,7 @@ if uploaded_file is not None:
     chosen = set(st.session_state[DEP_KEY]) | set(st.session_state[INDEP_KEY])
     remaining = [v for v in all_vars if v not in chosen]
 
-    st.markdown("##### Remaining Variables:")
+    st.markdown("##### Remaining variables:")
     if remaining:
         grid = st.columns(4)
         for i, var in enumerate(remaining):
@@ -234,9 +229,9 @@ if uploaded_file is not None:
     # 5. Dependent / independent selectors
     left, right = st.columns(2, gap="large")
     with left:
-        render_role("Dependent Variables:", DEP_KEY, remaining)
+        render_role("Dependent variables:", DEP_KEY, remaining)
     with right:
-        render_role("Independent Variables:", INDEP_KEY, remaining)
+        render_role("Independent variables:", INDEP_KEY, remaining)
 
     # 6. OK button
     _, center, _ = st.columns([2, 1, 2])
@@ -255,27 +250,13 @@ if uploaded_file is not None:
 
     config = st.session_state.get("regression_config")
     if config:
-        panel = config["panel"]
-        st.success("Variables confirmed.")
-        st.write(f"**Dependent:** {', '.join(config['dependent'])}")
-        st.write(f"**Independent:** {', '.join(config['independent'])}")
-        st.caption("Panel data (long format) that the regression will use:")
-        st.dataframe(panel.head(20), use_container_width=True)
-        st.caption(f"{panel.shape[0]} rows × {panel.shape[1]} columns")
-        st.divider()
-        st.subheader("Run Panel Regression")
-
-        st.write(
-            "Run Fixed Effects, Random Effects, and Hausman tests "
-            "for every selected dependent-independent variable pair."
-        )
 
         if st.button(
-            "Run Panel Regression",
+            "Run panel regression",
             type="primary",
             use_container_width=True,
         ):
-            with st.spinner("Running panel regressions..."):
+            with st.spinner("Running panel regression"):
                 try:
                     regression_results = run_panel_regression(
                         panel=config["panel"],
@@ -297,18 +278,6 @@ if uploaded_file is not None:
         if regression_results is not None:
             st.subheader("Regression Results")
 
-            successful = regression_results[
-                regression_results["Status"] == "OK"
-            ]
-
-            failed = regression_results[
-                regression_results["Status"] != "OK"
-            ]
-
-            st.write(
-                f"**Successful models:** {len(successful)} "
-                f"out of {len(regression_results)} combinations"
-            )
 
             # Display numeric values without converting them
             # to strings, so users can sort and export them.
@@ -318,19 +287,12 @@ if uploaded_file is not None:
                 hide_index=True,
             )
 
-            if not failed.empty:
-                st.warning(
-                    f"{len(failed)} model combination(s) could "
-                    "not be fully estimated. Check the Status "
-                    "column for details."
-                )
-
             csv_data = regression_results.to_csv(
                 index=False
             ).encode("utf-8")
 
             st.download_button(
-                label="Download Regression Results (CSV)",
+                label="Download panel regression results (CSV)",
                 data=csv_data,
                 file_name="panel_regression_results.csv",
                 mime="text/csv",

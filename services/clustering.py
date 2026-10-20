@@ -313,7 +313,6 @@ def clustering(df, kmin, kmax):
 
         results.append({
             "k": k,
-            "inertia": km.inertia_,
             "silhouette_score": sil,
             "davies_bouldin_index": dbi,
         })
@@ -334,7 +333,7 @@ def clustering(df, kmin, kmax):
     )
     axes[0].set_title("Davies-Bouldin Index")
     axes[0].set_xlabel("Number of clusters (k)")
-    axes[0].set_ylabel("DBI (lower is better)")
+    axes[0].set_ylabel("DBI")
     axes[0].grid(alpha=0.3)
 
     axes[1].plot(
@@ -345,7 +344,7 @@ def clustering(df, kmin, kmax):
     )
     axes[1].set_title("Silhouette Score")
     axes[1].set_xlabel("Number of clusters (k)")
-    axes[1].set_ylabel("Score (higher is better)")
+    axes[1].set_ylabel("Silhouette")
     axes[1].grid(alpha=0.3)
 
     fig.tight_layout()
