@@ -9,3 +9,5 @@ scipy
 linearmodels
 openpyxl
 geopandas
+supabase
+python-dotenv

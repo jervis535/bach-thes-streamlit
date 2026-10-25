@@ -3,15 +3,18 @@ import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib import cm
 
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import (
     davies_bouldin_score,
+    silhouette_samples,
     silhouette_score,
 )
 from sklearn.preprocessing import RobustScaler
+import math
 
 
 # --------------------------------------------------
@@ -133,19 +136,135 @@ def clustering_transformation(df):
 
 
 # --------------------------------------------------
-# 3. PCA + K-Means clustering and evaluation
+# 3. Helpers: metric normalization and plots
 # --------------------------------------------------
 
-def clustering(df, kmin, kmax):
+def _min_max(series):
+    """Min-max normalize a Series to 0-1 (constant series -> 0)."""
+    span = series.max() - series.min()
+
+    if span == 0:
+        return pd.Series(0.0, index=series.index)
+
+    return (series - series.min()) / span
+
+
+def plot_cluster_distribution(X_pca, labels, k):
+    """
+    Scatter plot of the clusters using the first two
+    principal components (figure 1 of the two cluster plots).
+    """
+    fig, ax = plt.subplots(figsize=(10, 7))
+
+    x = X_pca[:, 0]
+    y = X_pca[:, 1] if X_pca.shape[1] > 1 else np.zeros(len(x))
+
+    scatter = ax.scatter(
+        x,
+        y,
+        c=labels,
+        cmap="viridis",
+        s=50,
+        alpha=0.7,
+    )
+
+    ax.set_xlabel("Principal Component 1")
+    ax.set_ylabel(
+        "Principal Component 2"
+        if X_pca.shape[1] > 1
+        else "(only one component available)"
+    )
+    ax.set_title(f"K-Means Cluster Distribution (k={k})")
+
+    ax.legend(
+        *scatter.legend_elements(),
+        title="Cluster",
+    )
+
+    ax.grid(alpha=0.2)
+    fig.tight_layout()
+
+    return fig
+
+
+def plot_silhouette(X_pca, labels, k):
+    """
+    Silhouette plot for the chosen k (figure 2 of the two
+    cluster plots). Shows the per-sample silhouette values of
+    each cluster and the average score as a red dashed line.
+    """
+    sample_values = silhouette_samples(X_pca, labels)
+    avg_score = silhouette_score(X_pca, labels)
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    ax.set_xlim([-0.1, 1])
+    # Extra space between clusters so they are visually separated
+    ax.set_ylim([0, len(X_pca) + (k + 1) * 10])
+
+    y_lower = 10
+
+    for i in range(k):
+        cluster_values = np.sort(sample_values[labels == i])
+
+        size = cluster_values.shape[0]
+        y_upper = y_lower + size
+
+        color = cm.nipy_spectral(float(i) / k)
+
+        ax.fill_betweenx(
+            np.arange(y_lower, y_upper),
+            0,
+            cluster_values,
+            facecolor=color,
+            edgecolor=color,
+            alpha=0.7,
+        )
+
+        # Cluster label in the middle of each silhouette
+        ax.text(-0.05, y_lower + 0.5 * size, str(i))
+
+        y_lower = y_upper + 10
+
+    ax.axvline(x=avg_score, color="red", linestyle="--")
+
+    ax.set_title("The silhouette plot for the various clusters.")
+    ax.set_xlabel("The silhouette coefficient values")
+    ax.set_ylabel("Cluster label")
+    ax.set_yticks([])
+    ax.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
+
+    fig.suptitle(
+        f"Silhouette analysis for KMeans clustering "
+        f"with n_clusters = {k}",
+        fontsize=12,
+        fontweight="bold",
+    )
+
+    fig.tight_layout()
+
+    return fig
+
+
+# --------------------------------------------------
+# 4. PCA + K-Means clustering and evaluation
+# --------------------------------------------------
+
+def clustering(df, kmin, kmax, alpha=0.5):
     """
     Run clustering on an uploaded DataFrame.
 
-    Returns:
+    alpha is the weight of the Silhouette score in the combined
+    score (1 - alpha is the weight of the DBI).
+
+    Returns a dict with:
         transformed_df: transformed dataset
         clustered_df: dataset with cluster labels
         pca_summary: PCA information per variable group
-        metrics_df: clustering evaluation metrics
-        fig: DBI and Silhouette plots
+        metrics_df: metrics per k, including the combined score
+        fig: DBI and Silhouette metric plots
+        fig_cluster: cluster distribution scatter plot
+        fig_silhouette: silhouette plot for the best k
     """
 
     if df.empty:
@@ -238,8 +357,6 @@ def clustering(df, kmin, kmax):
     for var_name, cols in var_groups.items():
         group_data = X_imputed[cols].to_numpy()
 
-        # A one-column group already has at most one component.
-        # PCA is still applied to preserve the workflow.
         n_components = min(
             group_data.shape[0],
             group_data.shape[1],
@@ -279,8 +396,6 @@ def clustering(df, kmin, kmax):
     # F. Validate the requested cluster range
     n_samples = X_pca.shape[0]
 
-    # Silhouette requires at least 2 clusters and fewer
-    # clusters than samples.
     valid_k = [
         k for k in range(int(kmin), int(kmax) + 1)
         if 2 <= k < n_samples
@@ -322,7 +437,21 @@ def clustering(df, kmin, kmax):
 
     metrics_df = pd.DataFrame(results)
 
-    # H. Plot the evaluation metrics
+    # H. Combined score (Silhouette: higher is better,
+    #    DBI: lower is better)
+    metrics_df["silhouette_norm"] = _min_max(
+        metrics_df["silhouette_score"]
+    )
+    metrics_df["dbi_norm"] = _min_max(
+        metrics_df["davies_bouldin_index"]
+    )
+
+    metrics_df["combined_score"] = (
+        alpha * metrics_df["silhouette_norm"]
+        + (1 - alpha) * (1 - metrics_df["dbi_norm"])
+    )
+
+    # I. Plot the evaluation metrics
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
     axes[0].plot(
@@ -349,7 +478,10 @@ def clustering(df, kmin, kmax):
 
     fig.tight_layout()
 
-    # I. Select the best candidates according to each metric
+    # J. Select the best k
+    best_row = metrics_df.loc[metrics_df["combined_score"].idxmax()]
+    best_k = int(best_row["k"])
+
     best_silhouette_k = int(
         metrics_df.loc[
             metrics_df["silhouette_score"].idxmax(), "k"
@@ -362,9 +494,19 @@ def clustering(df, kmin, kmax):
         ]
     )
 
-    # Return labels for the best Silhouette candidate
+    # K. Final clustering uses the best combined-score k
+    final_labels = labels_by_k[best_k]
+
     clustered_df = cleaned_df.copy()
-    clustered_df["cluster"] = labels_by_k[best_silhouette_k]
+    clustered_df["cluster"] = final_labels
+
+    # L. Two separate plots for the final clustering
+    fig_cluster = plot_cluster_distribution(
+        X_pca, final_labels, best_k
+    )
+    fig_silhouette = plot_silhouette(
+        X_pca, final_labels, best_k
+    )
 
     return {
         "transformed_df": transformed_df,
@@ -375,7 +517,100 @@ def clustering(df, kmin, kmax):
         "pca_models": pca_models,
         "scalers": scalers,
         "models": models_by_k,
+        "best_k": best_k,
+        "best_combined_score": float(best_row["combined_score"]),
         "best_silhouette_k": best_silhouette_k,
         "best_dbi_k": best_dbi_k,
+        "alpha": alpha,
         "fig": fig,
+        "fig_cluster": fig_cluster,
+        "fig_silhouette": fig_silhouette,
     }
+
+_UNITS = {
+    "rainfall_mm": "mm",
+    "temp_min": "°C",
+    "temp_max": "°C",
+    "temp_avg": "°C",
+}
+ 
+_BASE_COLORS = ["blue", "red", "limegreen"]
+ 
+ 
+def _cluster_colors(n):
+    """Blue / red / green like the reference chart, tab10 beyond that."""
+    if n <= len(_BASE_COLORS):
+        return _BASE_COLORS[:n]
+    extra = plt.cm.tab10(np.linspace(0, 1, 10))
+    return [extra[i % 10] for i in range(n)]
+ 
+ 
+def plot_cluster_profile_trends(clustered_df, ncols=3):
+    """
+    One subplot per variable: x = year, y = mean value of the
+    cities in each cluster, one line per cluster.
+ 
+    Uses the original (untransformed) values in clustered_df.
+    Returns a matplotlib Figure, or None if no yearly columns exist.
+    """
+    year_re = re.compile(r"^(?P<var>.+?)\s+(?P<year>\d{4})$")
+ 
+    # variable name -> {year: column name}
+    groups = {}
+    for col in clustered_df.columns:
+        m = year_re.match(str(col).strip())
+        if m:
+            groups.setdefault(m["var"], {})[int(m["year"])] = col
+ 
+    if not groups:
+        return None
+ 
+    cluster_ids = sorted(clustered_df["cluster"].unique())
+    colors = _cluster_colors(len(cluster_ids))
+ 
+    n_vars = len(groups)
+    nrows = math.ceil(n_vars / ncols)
+ 
+    fig, axes = plt.subplots(
+        nrows, ncols,
+        figsize=(5.5 * ncols, 3.8 * nrows),
+        squeeze=False,
+    )
+    axes = axes.ravel()
+ 
+    for ax, (var, year_cols) in zip(axes, groups.items()):
+        years = sorted(year_cols)
+ 
+        data = clustered_df[[year_cols[y] for y in years]].apply(
+            pd.to_numeric, errors="coerce"
+        )
+        data.columns = years
+        data["cluster"] = clustered_df["cluster"].to_numpy()
+ 
+        means = data.groupby("cluster").mean()
+ 
+        for color, cid in zip(colors, cluster_ids):
+            ax.plot(
+                years,
+                means.loc[cid, years],
+                marker="o",
+                markersize=3,
+                linewidth=1.5,
+                color=color,
+                label=f"Cluster {cid}",
+            )
+ 
+        ax.set_title(var.replace("_", " ").title())
+        ax.set_xlabel("Year")
+        ax.set_ylabel(_UNITS.get(var, "Mean value"))
+        ax.set_xticks(years)
+        ax.tick_params(axis="x", rotation=45)
+        ax.grid(alpha=0.3)
+        ax.legend(fontsize=8)
+ 
+    # hide unused panels in the last row
+    for ax in axes[n_vars:]:
+        ax.set_visible(False)
+ 
+    fig.tight_layout()
+    return fig
