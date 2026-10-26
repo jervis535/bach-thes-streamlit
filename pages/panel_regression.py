@@ -133,18 +133,18 @@ def render_role(title, role, options):
 # Page
 # ---------------------------------------------------------------------------
 st.title("Panel Regression")
-st.write("Upload your dataset and configure the dependent and independent variables.")
+st.write("Mengunggah datasetmu dan menyesuaikan variabel bergantung dan tidak bergantung")
 
 st.divider()
 
 # 1. File uploader
-st.subheader("Upload dataset")
+st.subheader("Mengunggah dataset")
 
 uploaded_file = st.file_uploader(
-    "Upload a .csv or .xlsx file",
-    type=["csv", "xlsx"],
+    "Unggah file .csv atau .xlsx",
+    type=["csv","xlsx"],
     accept_multiple_files=False,
-    help="Only .csv and .xlsx files are accepted.",
+    help="Hanya file .csv atau .xlsx akan diterima",
 )
 
 # 2. Process the uploaded file
@@ -164,7 +164,6 @@ if uploaded_file is not None:
 
         st.success(f"File uploaded successfully: {uploaded_file.name}")
 
-        st.subheader("Dataset preview")
         st.dataframe(df.head(), use_container_width=True)
 
     except Exception as e:
@@ -190,14 +189,7 @@ if uploaded_file is not None:
         reset_result()
 
     st.divider()
-    st.subheader("Select Variables")
-
-    if not all_vars:
-        st.warning(
-            "No variables detected. Time-varying columns should end with a year, "
-            "e.g. 'produksi 2010'."
-        )
-        st.stop()
+    st.subheader("Pilih variabel")
 
     if time_vars:
         years = sorted({y for ys in time_vars.values() for y in ys})
@@ -213,20 +205,20 @@ if uploaded_file is not None:
     chosen = set(st.session_state[DEP_KEY]) | set(st.session_state[INDEP_KEY])
     remaining = [v for v in all_vars if v not in chosen]
 
-    st.markdown("##### Remaining variables:")
+    st.markdown("##### Variabel sisa:")
     if remaining:
         grid = st.columns(4)
         for i, var in enumerate(remaining):
             grid[i % 4].markdown(f"• {var}")
     else:
-        st.caption("All variables have been assigned.")
+        st.caption("Semua variabel sudah terpilih")
 
     # 5. Dependent / independent selectors
     left, right = st.columns(2, gap="large")
     with left:
-        render_role("Dependent variables:", DEP_KEY, remaining)
+        render_role("Variabel bergantung:", DEP_KEY, remaining)
     with right:
-        render_role("Independent variables:", INDEP_KEY, remaining)
+        render_role("Variabel tidak bergantung:", INDEP_KEY, remaining)
 
     # 6. OK button
     _, center, _ = st.columns([2, 1, 2])
@@ -247,11 +239,11 @@ if uploaded_file is not None:
     if config:
 
         if st.button(
-            "Run panel regression",
+            "Mulai panel regression",
             type="primary",
             use_container_width=True,
         ):
-            with st.spinner("Running panel regression"):
+            with st.spinner("Melakukan proses panel regression"):
                 try:
                     regression_results = run_panel_regression(
                         panel=config["panel"],
@@ -272,7 +264,7 @@ if uploaded_file is not None:
         )
 
         if regression_results is not None:
-            st.subheader("Regression Results")
+            st.subheader("Hasil panel regression")
 
 
             # Display numeric values without converting them
@@ -286,11 +278,3 @@ if uploaded_file is not None:
             csv_data = regression_results.to_csv(
                 index=False
             ).encode("utf-8")
-
-            st.download_button(
-                label="Download panel regression results (CSV)",
-                data=csv_data,
-                file_name="panel_regression_results.csv",
-                mime="text/csv",
-                use_container_width=True,
-            )

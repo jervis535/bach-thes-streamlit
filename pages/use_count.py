@@ -7,45 +7,44 @@ from services.auth import require_admin
 
 require_admin()
 
-st.title("📊 Usage statistics")
-st.write("How many times each service was used in the selected time frame.")
+st.title("Jumlah penggunaan layanan")
 
 st.divider()
 
 today = datetime.now(timezone.utc).date()
 
 picked = st.date_input(
-    "Time frame",
+    "Waktu",
     value=(today - timedelta(days=29), today),
     max_value=today,
     format="YYYY-MM-DD",
-    help="Pick a start and an end date. Days are counted in UTC.",
+    help="Pilih tanggal awal dan tanggal akhir",
 )
 
 # While the admin is mid-selection, Streamlit returns only the start date.
 if not isinstance(picked, tuple) or len(picked) != 2:
-    st.info("Select an end date to continue.")
+    st.info("Pilih tanggal akhir untuk lanjut")
     st.stop()
 
 start, end = picked
 
 try:
-    with st.spinner("Loading usage data"):
+    with st.spinner("Menghitung jumlah penggunaan"):
         usage = get_use_counts(start, end)
 except Exception as exc:
-    st.error(f"Could not load usage data: {exc}")
+    st.error(f"Tidak bisa menghitung jumlah penggunaan: {exc}")
     st.stop()
 
 total_clustering = int(usage["Clustering"].sum())
 total_regression = int(usage["Panel Regression"].sum())
 
 col1, col2, col3 = st.columns(3)
-col1.metric("Clustering runs", f"{total_clustering:,}")
-col2.metric("Panel regression runs", f"{total_regression:,}")
-col3.metric("Total runs", f"{total_clustering + total_regression:,}")
+col1.metric("Jumlah penggunaan klasterisasi", f"{total_clustering:,}")
+col2.metric("Jumlah penggunaan panel regression", f"{total_regression:,}")
+col3.metric("Total jumlah penggunaan", f"{total_clustering + total_regression:,}")
 
 if total_clustering + total_regression == 0:
-    st.info("No usage was recorded in this time frame.")
+    st.info("Tidak ada penggunaan di dalam waktu ini")
 
-st.subheader("Uses per day")
+st.subheader("Penggunaan layanan per hari")
 st.bar_chart(usage, y=["Clustering", "Panel Regression"], stack=False)

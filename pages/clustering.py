@@ -17,29 +17,29 @@ def get_shapefile():
 
 require_role()
 
-st.title("Clustering")
-st.write("Upload your dataset and configure the number of clusters.")
+st.title("Klasterisasi")
+st.write("Mengunggah datasetmu dan mulai proses klasterisasi")
 
 st.divider()
 
 # 1. File uploader
-st.subheader("Upload Dataset")
+st.subheader("Unggah dataset")
 
 uploaded_file = st.file_uploader(
-    "Upload a .csv or .xlsx file",
-    type=["csv", "xlsx"],
+    "Unggah file .csv atau .xlsx",
+    type=["csv","xlsx"],
     accept_multiple_files=False,
-    help="Only .csv and .xlsx files are accepted.",
+    help="Hanya file .csv atau .xlsx akan diterima",
 )
 
 # 2. Cluster range input
-st.subheader("Cluster Configuration")
+st.subheader("Konfigurasi jumlah kelompok")
 
 col1, col2 = st.columns(2)
 
 with col1:
     min_clusters = st.number_input(
-        "Minimum cluster amount",
+        "Jumlah kelompok minimum",
         min_value=2,
         value=2,
         step=1,
@@ -47,7 +47,7 @@ with col1:
 
 with col2:
     max_clusters = st.number_input(
-        "Maximum cluster amount",
+        "Jumlah kelompok maksimum",
         min_value=2,
         value=10,
         step=1,
@@ -55,7 +55,7 @@ with col2:
 
 # 3. Validate inputs
 if min_clusters > max_clusters:
-    st.error("The minimum number of clusters (X) cannot exceed the maximum (Y).")
+    st.error("Jumlah kelompok minimum tidak bisa lebih dari jumlah kelompok maksimum")
 
 # 4. Process the uploaded file
 df = None
@@ -71,12 +71,10 @@ if uploaded_file is not None:
             df = pd.read_excel(uploaded_file, engine="openpyxl")
 
         else:
-            st.error("Unsupported file format.")
+            st.error("Format file salah harap unggah format .csv atau .xlsx")
             st.stop()
 
-        st.success(f"File uploaded successfully: {uploaded_file.name}")
-
-        st.subheader("Dataset Preview")
+        st.success(f"File {uploaded_file.name} berhasil diunggah")
         st.dataframe(df.head(), use_container_width=True)
 
     except Exception as e:
@@ -85,26 +83,26 @@ if uploaded_file is not None:
 
 # Run clustering
 st.divider()
-st.subheader("Cluster analysis")
+st.subheader("Analisis kelompok")
 
 if min_clusters > max_clusters:
     st.error(
-        "Minimum clusters cannot exceed maximum clusters."
+        "Jumlah kelompok minimum tidak bisa lebih dari jumlah kelompok maksimum"
     )
 else:
     run_clustering = st.button(
-        "Run Clustering",
+        "Mulai klasterisasi",
         type="primary",
         use_container_width=True,
     )
 
     if run_clustering and df is None:
-        st.warning("Please upload a dataset first.")
+        st.warning("Unggah dataset dulu sebelom memulai")
 
     elif run_clustering:
         try:
             with st.spinner(
-                "running clustering process"
+                "Melakukan proses klasterisasi"
             ):
 
                 results = clustering(
@@ -115,10 +113,10 @@ else:
 
             record_use("clustering")
 
-            st.success("Clustering completed successfully!")
+            st.success("Klasterisasi berhasil")
 
             # 1. Evaluation metrics
-            st.subheader("Cluster results")
+            st.subheader("Hasil klasterisasi")
 
             metrics_df = results["metrics_df"]
 
@@ -126,47 +124,40 @@ else:
 
             with col1:
                 st.metric(
-                    "Best k (combined score)",
+                    "Jumlah K paling baik",
                     results["best_k"],
                 )
 
             with col2:
                 st.metric(
-                    "Best Silhouette k",
+                    "Jumlah K dengan silhouette tertinggi",
                     results["best_silhouette_k"],
                 )
 
             with col3:
                 st.metric(
-                    "Best DBI k",
+                    "Jumlah K dengan DBI tertinggi",
                     results["best_dbi_k"],
                 )
 
-            st.caption(
-                f"Combined score = {results['alpha']:.0%} normalized "
-                f"Silhouette + {1 - results['alpha']:.0%} inverted "
-                "normalized DBI. The final clusters use the k with "
-                "the highest combined score."
-            )
-
             st.dataframe(
-                metrics_df.round(4),
+                metrics_df[["k","silhouette_score","davies_bouldin_index"]].round(4),
                 use_container_width=True,
                 hide_index=True,
             )
 
             # 2. Evaluation plots
-            st.subheader("Metric plots")
+            st.subheader("Grafik untuk metrik")
             st.pyplot(results["fig"])
             plt.close(results["fig"])
 
             # 3. Cluster distribution plot
-            st.subheader("Cluster distribution")
+            st.subheader("Distribusi kelompok")
             st.pyplot(results["fig_cluster"])
             plt.close(results["fig_cluster"])
 
             # 4. Silhouette plot (separate figure)
-            st.subheader("Silhouette plot")
+            st.subheader("grafik untuk silhouette")
             st.pyplot(results["fig_silhouette"])
             plt.close(results["fig_silhouette"])
 
@@ -176,20 +167,16 @@ else:
             clustered_df = results["clustered_df"]
 
             st.write(
-                "**Rows after cleaning:**",
+                "Jumlah wilayah yang ada penghasilan:",
                 len(clustered_df),
-            )
-
-            st.write(
-                "**Cluster distribution:**"
             )
 
             distribution = (
                 clustered_df["cluster"]
                 .value_counts()
                 .sort_index()
-                .rename_axis("Cluster")
-                .reset_index(name="Number of rows")
+                .rename_axis("Kelompok")
+                .reset_index(name="Jumlah wilayah")
             )
 
             st.dataframe(
@@ -204,8 +191,8 @@ else:
             ).encode("utf-8")
 
             # 7. Cluster Profile
-            st.subheader("Cluster Profile")
-            st.caption("Mean value per cluster for each year.")
+            st.subheader("Profile kelompok")
+            st.caption("(Rata-rata setiap variabel)")
  
             profile_fig = plot_cluster_profile_trends(clustered_df)
  
@@ -215,7 +202,7 @@ else:
                 st.pyplot(profile_fig)
                 plt.close(profile_fig)
  
-            st.subheader("Cluster Map")
+            st.subheader("Peta kelompok")
             try:
                 map_fig, match_df, no_data = build_cluster_map(
                     get_shapefile(), clustered_df
@@ -224,17 +211,10 @@ else:
                 plt.close(map_fig)
  
                 problems = match_df[match_df["method"].isin(["unmatched", "duplicate"])]
-                if not problems.empty:
-                    with st.expander(f"{len(problems)} cities could not be drawn"):
-                        st.dataframe(
-                            problems[["nama_kota", "method"]],
-                            hide_index=True,
-                            use_container_width=True,
-                        )
             except Exception as e:
-                st.warning(f"Could not draw the map: {e}")
+                st.warning(f"Tidak bisa gambar peta: {e}")
 
         except Exception as e:
             st.error(
-                f"Clustering failed: {e}"
+                f"Klasterisasi gagal: {e}"
             )

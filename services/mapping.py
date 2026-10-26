@@ -257,7 +257,7 @@ def build_cluster_map(gdf_base, clustered_df, name_col=None):
         mpatches.Patch(
             color=colors[cid],
             alpha=0.7,
-            label=f"Cluster {int(cid)} ({counts.get(cid, 0)} regions)",
+            label=f"Kelompok {int(cid)} ({counts.get(cid, 0)} wilayah)",
         )
         for cid in cluster_ids
     ]

@@ -62,8 +62,8 @@ def run_panel_regression(
         for indep in independent_variables:
 
             result = {
-                "DependentVar": dep,
-                "IndependentVar": indep,
+                "Variabel bergantung": dep,
+                "Variabel tidak bergantung": indep,
                 "RECoef": np.nan,
                 "REp-Value": np.nan,
                 "FECoef": np.nan,

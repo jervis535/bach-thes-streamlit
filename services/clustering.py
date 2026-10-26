@@ -168,17 +168,9 @@ def plot_cluster_distribution(X_pca, labels, k):
         alpha=0.7,
     )
 
-    ax.set_xlabel("Principal Component 1")
-    ax.set_ylabel(
-        "Principal Component 2"
-        if X_pca.shape[1] > 1
-        else "(only one component available)"
-    )
-    ax.set_title(f"K-Means Cluster Distribution (k={k})")
-
     ax.legend(
         *scatter.legend_elements(),
-        title="Cluster",
+        title="Kelompok",
     )
 
     ax.grid(alpha=0.2)
@@ -228,18 +220,10 @@ def plot_silhouette(X_pca, labels, k):
 
     ax.axvline(x=avg_score, color="red", linestyle="--")
 
-    ax.set_title("The silhouette plot for the various clusters.")
-    ax.set_xlabel("The silhouette coefficient values")
-    ax.set_ylabel("Cluster label")
+    ax.set_xlabel("Nilai silhouette")
+    ax.set_ylabel("Kelompok")
     ax.set_yticks([])
     ax.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
-
-    fig.suptitle(
-        f"Silhouette analysis for KMeans clustering "
-        f"with n_clusters = {k}",
-        fontsize=12,
-        fontweight="bold",
-    )
 
     fig.tight_layout()
 
@@ -461,7 +445,7 @@ def clustering(df, kmin, kmax, alpha=0.5):
         color="blue",
     )
     axes[0].set_title("Davies-Bouldin Index")
-    axes[0].set_xlabel("Number of clusters (k)")
+    axes[0].set_xlabel("Jumlah kelompok")
     axes[0].set_ylabel("DBI")
     axes[0].grid(alpha=0.3)
 
@@ -472,7 +456,7 @@ def clustering(df, kmin, kmax, alpha=0.5):
         color="orange",
     )
     axes[1].set_title("Silhouette Score")
-    axes[1].set_xlabel("Number of clusters (k)")
+    axes[1].set_xlabel("Jumlah kelompok")
     axes[1].set_ylabel("Silhouette")
     axes[1].grid(alpha=0.3)
 
@@ -528,10 +512,10 @@ def clustering(df, kmin, kmax, alpha=0.5):
     }
 
 _UNITS = {
-    "rainfall_mm": "mm",
-    "temp_min": "°C",
-    "temp_max": "°C",
-    "temp_avg": "°C",
+    "rainfall_mm": "Jumlah rata-rata",
+    "temp_min": "Jumlah rata-rata",
+    "temp_max": "Jumlah rata-rata",
+    "temp_avg": "Jumlah rata-rata",
 }
  
 _BASE_COLORS = ["blue", "red", "limegreen"]
@@ -597,12 +581,12 @@ def plot_cluster_profile_trends(clustered_df, ncols=3):
                 markersize=3,
                 linewidth=1.5,
                 color=color,
-                label=f"Cluster {cid}",
+                label=f"Kelompok {cid}",
             )
  
         ax.set_title(var.replace("_", " ").title())
-        ax.set_xlabel("Year")
-        ax.set_ylabel(_UNITS.get(var, "Mean value"))
+        ax.set_xlabel("Tahun")
+        ax.set_ylabel(_UNITS.get(var, "Jumlah rata-rata"))
         ax.set_xticks(years)
         ax.tick_params(axis="x", rotation=45)
         ax.grid(alpha=0.3)

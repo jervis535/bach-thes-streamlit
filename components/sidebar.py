@@ -9,8 +9,7 @@ def _handle_logout():
 
 def render_sidebar():
     with st.sidebar:
-        st.title("My App")
-        st.caption("My app")
+        st.title("Klasterisasi dan panel regression")
 
         st.divider()
 
@@ -19,18 +18,18 @@ def render_sidebar():
         if get_role() == "admin":
             st.page_link(
                 "pages/use_count.py",
-                label="Usage statistics",
+                label="Jumlah penggunaan layanan",
                 icon="📊",
             )
             st.page_link(
                 "pages/user_count.py",
-                label="Registered users",
+                label="Jumlah registrasi pengguna",
                 icon="👥",
             )
         else:
             st.page_link(
                 "pages/clustering.py",
-                label="Clustering",
+                label="Klasterisasi",
                 icon="📊",
             )
             st.page_link(
@@ -40,7 +39,7 @@ def render_sidebar():
             )
             st.page_link(
                 "pages/instructions.py",
-                label="Instructions",
+                label="Instruksi",
                 icon="📋",
             )
 
@@ -48,9 +47,9 @@ def render_sidebar():
 
         user = current_user()
         if user is not None:
-            st.caption(f"Signed in as {user.email}")
+            st.caption(f"Masuk sebagai {user.email}")
         st.button("Log out", icon="🚪", on_click=_handle_logout)
 
         st.divider()
 
-        st.caption("© 2026 My App")
+        st.caption("© 2026")
