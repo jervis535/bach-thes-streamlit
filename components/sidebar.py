@@ -1,6 +1,6 @@
 import streamlit as st
 
-from services.auth import current_user, sign_out
+from services.auth import current_user, get_role, sign_out
 
 
 def _handle_logout():
@@ -14,26 +14,35 @@ def render_sidebar():
 
         st.divider()
 
-        st.page_link(
-            "pages/clustering.py",
-            label="Clustering",
-            icon="📊",
-        )
-        st.page_link(
-            "pages/panel_regression.py",
-            label="Panel Regression",
-            icon="📈",
-        )
-        st.page_link(
-            "pages/instructions.py",
-            label="Instructions",
-            icon="📋",
-        )
-        st.link_button(
-            "Masukan",
-            "https://docs.google.com/forms/d/e/1FAIpQLScx0c3dJIJMMjHX8SOp4dpKDdsznHXLoLRyCW4OSvJnz2vXCg/viewform?usp=publish-editor",
-            icon="📢"
-        )
+        # page_link only works for pages registered in app.py, so the links
+        # here must match the pages each role gets there.
+        if get_role() == "admin":
+            st.page_link(
+                "pages/use_count.py",
+                label="Usage statistics",
+                icon="📊",
+            )
+            st.page_link(
+                "pages/user_count.py",
+                label="Registered users",
+                icon="👥",
+            )
+        else:
+            st.page_link(
+                "pages/clustering.py",
+                label="Clustering",
+                icon="📊",
+            )
+            st.page_link(
+                "pages/panel_regression.py",
+                label="Panel Regression",
+                icon="📈",
+            )
+            st.page_link(
+                "pages/instructions.py",
+                label="Instructions",
+                icon="📋",
+            )
 
         st.divider()
 

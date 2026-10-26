@@ -2,7 +2,7 @@ import streamlit as st
 
 from services.auth import sign_in
 
-st.title("🔐 Login")
+st.title("Login")
 
 with st.form("login_form"):
     email = st.text_input("Email")

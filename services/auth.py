@@ -87,6 +87,11 @@ def has_access() -> bool:
     return is_authenticated() and get_role() in ALLOWED_ROLES
 
 
+def is_admin() -> bool:
+    """True if the logged-in user's role is "admin"."""
+    return is_authenticated() and get_role() == "admin"
+
+
 def _error_message(exc: Exception) -> str:
     return getattr(exc, "message", None) or str(exc)
 
@@ -154,4 +159,17 @@ def require_role() -> None:
     require_login()
     if not has_access():
         st.error("You don't have permission to view this page.")
+        st.stop()
+
+
+def require_admin() -> None:
+    """Call at the top of every admin page.
+
+    app.py only registers admin pages for admins; this guard covers someone
+    running a page file directly. The data itself is protected separately by
+    the admin checks inside the database functions (admin_setup.sql).
+    """
+    require_login()
+    if not is_admin():
+        st.error("This page is for administrators only.")
         st.stop()
