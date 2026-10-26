@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
-from components.sidebar import render_sidebar
+from services.auth import require_role
 from services.clustering import clustering, plot_cluster_profile_trends
 from services.mapping import build_cluster_map, load_shapefile, SHP_PATH
+from services.usage import record_use
 
 
 @st.cache_resource
@@ -14,13 +15,7 @@ def get_shapefile():
     return load_shapefile(SHP_PATH)
 
 
-st.set_page_config(
-    page_title="Clustering",
-    page_icon="📊",
-    layout="wide",
-)
-
-render_sidebar()
+require_role()
 
 st.title("Clustering")
 st.write("Upload your dataset and configure the number of clusters.")
@@ -117,6 +112,8 @@ else:
                     int(min_clusters),
                     int(max_clusters),
                 )
+
+            record_use("clustering")
 
             st.success("Clustering completed successfully!")
 
@@ -236,25 +233,6 @@ else:
                         )
             except Exception as e:
                 st.warning(f"Could not draw the map: {e}")
-
-                st.subheader("Cluster Map")
-                try:
-                    map_fig, match_df, no_data = build_cluster_map(
-                        get_shapefile(), clustered_df
-                    )
-                    st.pyplot(map_fig)
-                    plt.close(map_fig)
-
-                    problems = match_df[match_df["method"].isin(["unmatched", "duplicate"])]
-                    if not problems.empty:
-                        with st.expander(f"{len(problems)} cities could not be drawn"):
-                            st.dataframe(
-                                problems[["nama_kota", "method"]],
-                                hide_index=True,
-                                use_container_width=True,
-                            )
-                except Exception as e:
-                    st.warning(f"Could not draw the map: {e}")
 
         except Exception as e:
             st.error(

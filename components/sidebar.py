@@ -29,6 +29,11 @@ def render_sidebar():
             label="Instructions",
             icon="📋",
         )
+        st.link_button(
+            "Masukan",
+            "https://docs.google.com/forms/d/e/1FAIpQLScx0c3dJIJMMjHX8SOp4dpKDdsznHXLoLRyCW4OSvJnz2vXCg/viewform?usp=publish-editor",
+            icon="📢"
+        )
 
         st.divider()
 

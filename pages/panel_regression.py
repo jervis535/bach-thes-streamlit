@@ -2,17 +2,12 @@ import re
 
 import pandas as pd
 import streamlit as st
+from services.auth import require_role
 from services.panel_regression import run_panel_regression
-from components.sidebar import render_sidebar
+from services.usage import record_use
 
 
-st.set_page_config(
-    page_title="Panel Regression",
-    page_icon="📈",
-    layout="wide",
-)
-
-render_sidebar()
+require_role()
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -146,7 +141,7 @@ st.divider()
 st.subheader("Upload dataset")
 
 uploaded_file = st.file_uploader(
-    "Upload a .cxv or .xlsx file",
+    "Upload a .csv or .xlsx file",
     type=["csv", "xlsx"],
     accept_multiple_files=False,
     help="Only .csv and .xlsx files are accepted.",
@@ -267,6 +262,7 @@ if uploaded_file is not None:
                     st.session_state["regression_results"] = (
                         regression_results
                     )
+                    record_use("panel_regression")
 
                 except Exception as exc:
                     st.error(f"Regression failed: {exc}")

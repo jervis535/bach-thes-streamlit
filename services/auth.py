@@ -1,4 +1,4 @@
-"""Supabase authentication helpers for the Streamlit app."""
+"""Supabase authentication and role helpers for the Streamlit app."""
 
 import os
 
@@ -9,6 +9,10 @@ from supabase import Client, create_client
 load_dotenv()  # reads .env from the project root (where you run `streamlit run`)
 
 MIN_PASSWORD_LENGTH = 6  # Supabase's default minimum
+
+# Roles allowed to open the app's protected pages. To let admins in too,
+# change this to {"user", "admin"}.
+ALLOWED_ROLES = {"user"}
 
 
 def get_client() -> Client:
@@ -45,6 +49,44 @@ def current_user():
     return st.session_state.get("user")
 
 
+def get_role() -> str | None:
+    """The logged-in user's role from public.profiles, or None.
+
+    Cached in session state after the first successful lookup, so a role
+    change in the database takes effect on the user's next login.
+    """
+    user = current_user()
+    if user is None:
+        return None
+
+    cached = st.session_state.get("role")
+    if cached is not None:
+        return cached
+
+    try:
+        res = (
+            get_client()
+            .table("profiles")
+            .select("role")
+            .eq("user_id", user.id)
+            .limit(1)
+            .execute()
+        )
+    except Exception:
+        return None
+
+    if not res.data:
+        return None  # no profile row: treated as no access
+
+    st.session_state["role"] = res.data[0]["role"]
+    return st.session_state["role"]
+
+
+def has_access() -> bool:
+    """True if the logged-in user's role may use the protected pages."""
+    return is_authenticated() and get_role() in ALLOWED_ROLES
+
+
 def _error_message(exc: Exception) -> str:
     return getattr(exc, "message", None) or str(exc)
 
@@ -59,11 +101,16 @@ def sign_in(email: str, password: str) -> tuple[bool, str]:
         return False, _error_message(exc)
 
     st.session_state["user"] = res.user
+    st.session_state.pop("role", None)  # always re-read the role on login
     return True, ""
 
 
 def sign_up(email: str, password: str) -> tuple[bool, str, bool]:
     """Returns (ok, message, logged_in).
+
+    New accounts get the "user" role from the database trigger in
+    supabase_setup.sql, never from client code, so users can't choose their
+    own role.
 
     If "Confirm email" is enabled in Supabase, no session is returned and the
     user must confirm via email before logging in.
@@ -75,6 +122,7 @@ def sign_up(email: str, password: str) -> tuple[bool, str, bool]:
 
     if res.session is not None and res.user is not None:
         st.session_state["user"] = res.user
+        st.session_state.pop("role", None)
         return True, "Account created.", True
 
     return True, "Account created. Check your email to confirm it, then log in.", False
@@ -91,11 +139,19 @@ def sign_out() -> None:
 
 
 def require_login() -> None:
-    """Defense in depth: call at the top of every protected page.
-
-    st.navigation already hides these pages from logged-out users; this guard
-    covers someone running a page file directly.
-    """
+    """Stop the page unless someone is logged in."""
     if not is_authenticated():
         st.warning("Please log in to view this page.")
+        st.stop()
+
+
+def require_role() -> None:
+    """Defense in depth: call at the top of every protected page.
+
+    st.navigation already hides these pages from users without access; this
+    guard covers someone running a page file directly.
+    """
+    require_login()
+    if not has_access():
+        st.error("You don't have permission to view this page.")
         st.stop()
