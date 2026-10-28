@@ -262,7 +262,7 @@ def build_cluster_map(gdf_base, clustered_df, name_col=None):
         for cid in cluster_ids
     ]
     handles.append(
-        mpatches.Patch(color=NO_DATA_COLOR, label="No data")
+        mpatches.Patch(color=NO_DATA_COLOR, label="Tidak ada")
     )
 
     ax.legend(handles=handles, loc="upper right")

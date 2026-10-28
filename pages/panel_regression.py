@@ -108,10 +108,10 @@ def render_role(title, role, options):
     with st.container(border=True):
         st.markdown(f"##### {title}")
         st.selectbox(
-            "Click to select variables",
+            "Pilih variabel",
             options=options,
             index=None,
-            placeholder="Click to select variables",
+            placeholder="Pilih variabel",
             key=f"pick_{role}",
             on_change=add_variable,
             args=(role,),
@@ -193,9 +193,6 @@ if uploaded_file is not None:
 
     if time_vars:
         years = sorted({y for ys in time_vars.values() for y in ys})
-        st.caption(
-            f"Detected {len(time_vars)} time-varying variables ({years[0]}–{years[-1]})"
-        )
     if df[entity_col].duplicated().any():
         st.warning(
             f"'{entity_col}' has duplicate values, so each row is treated as its own entity."
@@ -221,30 +218,38 @@ if uploaded_file is not None:
         render_role("Variabel tidak bergantung:", INDEP_KEY, remaining)
 
     # 6. OK button
+    
     _, center, _ = st.columns([2, 1, 2])
-    if center.button("OK", type="primary", use_container_width=True):
+
+    if center.button(
+        "Ok",
+        type="primary",
+        use_container_width=True,
+    ):
         dep = st.session_state[DEP_KEY]
         indep = st.session_state[INDEP_KEY]
+
         if not dep or not indep:
-            st.warning("Select at least one dependent and one independent variable.")
+            st.warning(
+                "Pilih paling sedikit satu variabel bergantung "
+                "dan tidak bergantung"
+            )
         else:
-            st.session_state["regression_config"] = {
-                "dependent": list(dep),
-                "independent": list(indep),
-                "entity_col": entity_col,
-                "panel": build_panel(df, entity_col, time_vars, dep + indep),
-            }
+            try:
+                with st.spinner("Melakukan proses panel regression"):
+                    # Build the regression configuration
+                    config = {
+                        "dependent": list(dep),
+                        "independent": list(indep),
+                        "entity_col": entity_col,
+                        "panel": build_panel(
+                            df, entity_col, time_vars, dep + indep
+                        ),
+                    }
 
-    config = st.session_state.get("regression_config")
-    if config:
+                    st.session_state["regression_config"] = config
 
-        if st.button(
-            "Mulai panel regression",
-            type="primary",
-            use_container_width=True,
-        ):
-            with st.spinner("Melakukan proses panel regression"):
-                try:
+                    # Run panel regression immediately
                     regression_results = run_panel_regression(
                         panel=config["panel"],
                         dependent_variables=config["dependent"],
@@ -256,25 +261,21 @@ if uploaded_file is not None:
                     )
                     record_use("panel_regression")
 
-                except Exception as exc:
-                    st.error(f"Regression failed: {exc}")
+            except Exception as exc:
+                st.error(f"Regression failed: {exc}")
 
-        regression_results = st.session_state.get(
-            "regression_results"
+    # Display regression results
+    regression_results = st.session_state.get("regression_results")
+
+    if regression_results is not None:
+        st.subheader("Hasil panel regression")
+
+        st.dataframe(
+            regression_results,
+            use_container_width=True,
+            hide_index=True,
         )
 
-        if regression_results is not None:
-            st.subheader("Hasil panel regression")
-
-
-            # Display numeric values without converting them
-            # to strings, so users can sort and export them.
-            st.dataframe(
-                regression_results,
-                use_container_width=True,
-                hide_index=True,
-            )
-
-            csv_data = regression_results.to_csv(
-                index=False
-            ).encode("utf-8")
+        csv_data = regression_results.to_csv(
+            index=False
+        ).encode("utf-8")

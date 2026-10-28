@@ -46,5 +46,5 @@ col3.metric("Email yang belom konfirmasi", f"{total - confirmed:,}")
 if total == 0:
     st.info("tidak ada pengguna yang registrasi di dalam waktu ini")
 
-st.subheader("Registrations per day")
+st.subheader("Registrasi per hari")
 st.bar_chart(daily_signup_counts(signups, start, end))

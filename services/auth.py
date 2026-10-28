@@ -130,7 +130,7 @@ def sign_up(email: str, password: str) -> tuple[bool, str, bool]:
         st.session_state.pop("role", None)
         return True, "Account created.", True
 
-    return True, "Account created. Check your email to confirm it, then log in.", False
+    return True, "Akun berhasil dibuat silakan periksa email", False
 
 
 def sign_out() -> None:

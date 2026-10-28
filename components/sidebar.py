@@ -48,7 +48,7 @@ def render_sidebar():
         user = current_user()
         if user is not None:
             st.caption(f"Masuk sebagai {user.email}")
-        st.button("Log out", icon="🚪", on_click=_handle_logout)
+        st.button("Logout", icon="🚪", on_click=_handle_logout)
 
         st.divider()
 
