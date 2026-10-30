@@ -7,21 +7,10 @@ import matplotlib.patches as mpatches
 import pandas as pd
 from pathlib import Path
 
-
-# Path to the GADM level-2 shapefile (keep the .shx, .dbf and .prj
-# files in the same folder).
 SHP_PATH = str(Path(__file__).resolve().parent.parent / "dependencies" / "map_thing.shp")
 
 NO_DATA_COLOR = "lightgrey"
 
-
-# --------------------------------------------------
-# 1. City-name matching: dataset names -> shapefile NAME_2
-# --------------------------------------------------
-
-# Spelling differences that cannot be fixed by stripping
-# "Kab." / "Kota". Keys are (kind, normalised base name).
-# The value is the exact NAME_2 used in the shapefile.
 _ALIASES_RAW = {
     ("kab", "Aceh Pidie"): "Pidie",
     ("kab", "Bireun"): "Bireuen",
@@ -44,7 +33,6 @@ _ALIASES_RAW = {
     ("kab", "Tanjung Jabung Barat"): "Tanjung Jabung B",
     ("kab", "Tanjung Jabung Timur"): "Tanjung Jabung T",
     ("kab", "Tulang Bawang"): "Tulangbawang",
-    # Kabupaten Mempawah is listed as "Pontianak" in GADM
     ("kab", "Mempawah"): "Pontianak",
     ("kota", "Bau Bau"): "Bau-Bau",
     ("kota", "Bukit Tinggi"): "Bukittinggi",

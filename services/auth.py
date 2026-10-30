@@ -11,7 +11,6 @@ load_dotenv()  # reads .env from the project root (where you run `streamlit run`
 MIN_PASSWORD_LENGTH = 6  # Supabase's default minimum
 
 # Roles allowed to open the app's protected pages. To let admins in too,
-# change this to {"user", "admin"}.
 ALLOWED_ROLES = {"user"}
 
 

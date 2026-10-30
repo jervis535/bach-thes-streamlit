@@ -412,7 +412,7 @@ def clustering(df, kmin, kmax, alpha=0.5):
 
         results.append({
             "k": k,
-            "silhouette_score": sil,
+            "silhouette": sil,
             "davies_bouldin_index": dbi,
         })
 
@@ -424,7 +424,7 @@ def clustering(df, kmin, kmax, alpha=0.5):
     # H. Combined score (Silhouette: higher is better,
     #    DBI: lower is better)
     metrics_df["silhouette_norm"] = _min_max(
-        metrics_df["silhouette_score"]
+        metrics_df["silhouette"]
     )
     metrics_df["dbi_norm"] = _min_max(
         metrics_df["davies_bouldin_index"]
@@ -451,7 +451,7 @@ def clustering(df, kmin, kmax, alpha=0.5):
 
     axes[1].plot(
         metrics_df["k"],
-        metrics_df["silhouette_score"],
+        metrics_df["silhouette"],
         marker="o",
         color="orange",
     )
@@ -468,7 +468,7 @@ def clustering(df, kmin, kmax, alpha=0.5):
 
     best_silhouette_k = int(
         metrics_df.loc[
-            metrics_df["silhouette_score"].idxmax(), "k"
+            metrics_df["silhouette"].idxmax(), "k"
         ]
     )
 

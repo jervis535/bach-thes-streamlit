@@ -141,7 +141,7 @@ else:
                 )
 
             st.dataframe(
-                metrics_df[["k","silhouette_score","davies_bouldin_index"]].round(4),
+                metrics_df[["k","silhouette","davies_bouldin_index"]].round(4),
                 use_container_width=True,
                 hide_index=True,
             )
@@ -162,7 +162,7 @@ else:
             plt.close(results["fig_silhouette"])
 
             # 5. Clustered dataset
-            st.subheader("Clustered Dataset")
+            st.subheader("Jumlah wilayah di kelompok")
 
             clustered_df = results["clustered_df"]
 
