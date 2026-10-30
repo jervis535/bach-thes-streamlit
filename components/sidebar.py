@@ -13,8 +13,6 @@ def render_sidebar():
 
         st.divider()
 
-        # page_link only works for pages registered in app.py, so the links
-        # here must match the pages each role gets there.
         if get_role() == "admin":
             st.page_link(
                 "pages/use_count.py",
@@ -25,6 +23,11 @@ def render_sidebar():
                 "pages/user_count.py",
                 label="Jumlah registrasi pengguna",
                 icon="👥",
+            )
+            st.link_button(
+                "Lihat masukan pengguna",
+                url="https://docs.google.com/spreadsheets/d/13vVQ56RuwNWsGZGAycWioF1sKDjQofXklZuWXujvpV0/edit?usp=sharing",
+                icon="📋",
             )
         else:
             st.page_link(
@@ -37,10 +40,10 @@ def render_sidebar():
                 label="Panel Regression",
                 icon="📈",
             )
-            st.page_link(
-                "pages/instructions.py",
-                label="Instruksi",
-                icon="📋",
+            st.link_button(
+                "Kasih kita masukanmu",
+                url="https://docs.google.com/forms/d/e/1FAIpQLScx0c3dJIJMMjHX8SOp4dpKDdsznHXLoLRyCW4OSvJnz2vXCg/viewform?usp=dialog",
+                icon="📢",
             )
 
         st.divider()

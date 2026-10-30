@@ -218,7 +218,6 @@ if uploaded_file is not None:
         render_role("Variabel bebas:", INDEP_KEY, remaining)
 
     # 6. OK button
-    
     _, center, _ = st.columns([2, 1, 2])
 
     if center.button(
