@@ -3,7 +3,8 @@ import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import cm
+
+from services.colors import get_cluster_color
 
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
@@ -159,19 +160,20 @@ def plot_cluster_distribution(X_pca, labels, k):
     x = X_pca[:, 0]
     y = X_pca[:, 1] if X_pca.shape[1] > 1 else np.zeros(len(x))
 
-    scatter = ax.scatter(
-        x,
-        y,
-        c=labels,
-        cmap="viridis",
-        s=50,
-        alpha=0.7,
-    )
+    for cid in sorted(np.unique(labels)):
+        mask = labels == cid
+        ax.scatter(
+            x[mask],
+            y[mask],
+            color=get_cluster_color(cid),
+            s=50,
+            alpha=0.7,
+            label=f"Kelompok {cid}",
+        )
 
-    ax.legend(
-        *scatter.legend_elements(),
-        title="Kelompok",
-    )
+    ax.legend(title="Kelompok")
+    ax.set_xlabel("Luas")
+    ax.set_ylabel("Produksi")
 
     ax.grid(alpha=0.2)
     fig.tight_layout()
@@ -202,7 +204,7 @@ def plot_silhouette(X_pca, labels, k):
         size = cluster_values.shape[0]
         y_upper = y_lower + size
 
-        color = cm.nipy_spectral(float(i) / k)
+        color = get_cluster_color(i)
 
         ax.fill_betweenx(
             np.arange(y_lower, y_upper),
@@ -518,17 +520,6 @@ _UNITS = {
     "temp_avg": "Jumlah rata-rata",
 }
  
-_BASE_COLORS = ["blue", "red", "limegreen"]
- 
- 
-def _cluster_colors(n):
-    """Blue / red / green like the reference chart, tab10 beyond that."""
-    if n <= len(_BASE_COLORS):
-        return _BASE_COLORS[:n]
-    extra = plt.cm.tab10(np.linspace(0, 1, 10))
-    return [extra[i % 10] for i in range(n)]
- 
- 
 def plot_cluster_profile_trends(clustered_df, ncols=3):
     """
     One subplot per variable: x = year, y = mean value of the
@@ -550,7 +541,6 @@ def plot_cluster_profile_trends(clustered_df, ncols=3):
         return None
  
     cluster_ids = sorted(clustered_df["cluster"].unique())
-    colors = _cluster_colors(len(cluster_ids))
  
     n_vars = len(groups)
     nrows = math.ceil(n_vars / ncols)
@@ -573,14 +563,14 @@ def plot_cluster_profile_trends(clustered_df, ncols=3):
  
         means = data.groupby("cluster").mean()
  
-        for color, cid in zip(colors, cluster_ids):
+        for cid in cluster_ids:
             ax.plot(
                 years,
                 means.loc[cid, years],
                 marker="o",
                 markersize=3,
                 linewidth=1.5,
-                color=color,
+                color=get_cluster_color(cid),
                 label=f"Kelompok {cid}",
             )
  

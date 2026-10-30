@@ -133,7 +133,7 @@ def render_role(title, role, options):
 # Page
 # ---------------------------------------------------------------------------
 st.title("Panel Regression")
-st.write("Mengunggah datasetmu dan menyesuaikan variabel bergantung dan tidak bergantung")
+st.write("Mengunggah datasetmu dan menyesuaikan variabel terikat dan bebas")
 
 st.divider()
 
@@ -213,9 +213,9 @@ if uploaded_file is not None:
     # 5. Dependent / independent selectors
     left, right = st.columns(2, gap="large")
     with left:
-        render_role("Variabel bergantung:", DEP_KEY, remaining)
+        render_role("Variabel terikat:", DEP_KEY, remaining)
     with right:
-        render_role("Variabel tidak bergantung:", INDEP_KEY, remaining)
+        render_role("Variabel bebas:", INDEP_KEY, remaining)
 
     # 6. OK button
     
@@ -231,8 +231,7 @@ if uploaded_file is not None:
 
         if not dep or not indep:
             st.warning(
-                "Pilih paling sedikit satu variabel bergantung "
-                "dan tidak bergantung"
+                "Pilih paling sedikit satu variabel terikat dan bebas"
             )
         else:
             try:

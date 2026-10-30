@@ -7,6 +7,8 @@ import matplotlib.patches as mpatches
 import pandas as pd
 from pathlib import Path
 
+from services.colors import get_cluster_colors
+
 SHP_PATH = str(Path(__file__).resolve().parent.parent / "dependencies" / "map_thing.shp")
 
 NO_DATA_COLOR = "lightgrey"
@@ -172,24 +174,6 @@ def load_shapefile(path=SHP_PATH):
 # 3. Map
 # --------------------------------------------------
 
-# Colour-blind-friendly palette (Okabe-Ito order), then tab20 as fallback.
-_PALETTE = [
-    "#D55E00", "#0072B2", "#009E73", "#E69F00",
-    "#CC79A7", "#56B4E9", "#F0E442", "#999999",
-]
-
-
-def _cluster_colors(cluster_ids):
-    if len(cluster_ids) <= len(_PALETTE):
-        return dict(zip(cluster_ids, _PALETTE))
-
-    cmap = plt.get_cmap("tab20")
-    return {
-        cid: cmap(i % 20)
-        for i, cid in enumerate(cluster_ids)
-    }
-
-
 def find_name_column(df):
     for col in df.columns:
         if _key(col) == "namakota":
@@ -224,7 +208,7 @@ def build_cluster_map(gdf_base, clustered_df, name_col=None):
     gdf = gdf_base.merge(lookup, on="NAME_2", how="left")
 
     cluster_ids = sorted(gdf["cluster"].dropna().unique())
-    colors = _cluster_colors(cluster_ids)
+    colors = get_cluster_colors(cluster_ids)
 
     gdf["color"] = gdf["cluster"].map(colors)
     gdf["color"] = gdf["color"].where(gdf["color"].notna(), NO_DATA_COLOR)
@@ -252,9 +236,44 @@ def build_cluster_map(gdf_base, clustered_df, name_col=None):
     handles.append(
         mpatches.Patch(color=NO_DATA_COLOR, label="Tidak ada")
     )
+    ax.set_title("Peta Persebaran Wilayah Berdasarkan Hasil Clustering")
+    ax.set_xlabel("Bujur", fontsize=11)
+    ax.set_ylabel("Lintang", fontsize=11)
+    ax.tick_params(
+    axis="both",
+    which="major",
+    labelsize=9,
+    direction="out",
+    )
+    ax.set_axis_on()
+    ax.grid(
+        True,
+        linestyle="--",
+        linewidth=0.5,
+        alpha=0.5,
+    )
+
+        # North compass (bottom-left corner)
+    ax.annotate(
+        "U",
+        xy=(0.08, 0.20),
+        xytext=(0.08, 0.10),
+        xycoords="axes fraction",
+        textcoords="axes fraction",
+        ha="center",
+        va="center",
+        fontsize=14,
+        fontweight="bold",
+        arrowprops=dict(
+            facecolor="black",
+            edgecolor="black",
+            width=3,
+            headwidth=10,
+            headlength=12,
+        ),
+    )
 
     ax.legend(handles=handles, loc="upper right")
-    ax.set_axis_off()
     fig.tight_layout()
 
     no_data_regions = gdf.loc[gdf["cluster"].isna(), "NAME_2"].tolist()
