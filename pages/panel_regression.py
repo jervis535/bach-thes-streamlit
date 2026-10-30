@@ -204,9 +204,9 @@ if uploaded_file is not None:
 
     st.markdown("##### Variabel sisa:")
     if remaining:
-        grid = st.columns(4)
+        grid = st.columns(3)
         for i, var in enumerate(remaining):
-            grid[i % 4].markdown(f"• {var}")
+            grid[i % 3].markdown(f"• {var}")
     else:
         st.caption("Semua variabel sudah terpilih")
 

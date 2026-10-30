@@ -229,14 +229,14 @@ def build_cluster_map(gdf_base, clustered_df, name_col=None):
         mpatches.Patch(
             color=colors[cid],
             alpha=0.7,
-            label=f"Kelompok {int(cid)} ({counts.get(cid, 0)} wilayah)",
+            label=f"Klaster {int(cid)} ({counts.get(cid, 0)} wilayah)",
         )
         for cid in cluster_ids
     ]
     handles.append(
         mpatches.Patch(color=NO_DATA_COLOR, label="Tidak ada")
     )
-    ax.set_title("Peta Persebaran Wilayah Berdasarkan Hasil Clustering")
+    ax.set_title("Peta klaster")
     ax.set_xlabel("Bujur", fontsize=11)
     ax.set_ylabel("Lintang", fontsize=11)
     ax.tick_params(

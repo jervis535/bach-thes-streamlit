@@ -47,4 +47,7 @@ if total_clustering + total_regression == 0:
     st.info("Tidak ada penggunaan di dalam waktu ini")
 
 st.subheader("Penggunaan layanan per hari")
-st.bar_chart(usage, y=["Clustering", "Panel Regression"], stack=False)
+chart_df = usage.reset_index().melt(
+    id_vars="Tanggal", var_name="Layanan", value_name="Jumlah"
+)
+st.bar_chart(chart_df, x="Tanggal", y="Jumlah", color="Layanan", stack=False)

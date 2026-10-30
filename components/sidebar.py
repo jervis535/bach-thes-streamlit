@@ -24,11 +24,6 @@ def render_sidebar():
                 label="Jumlah registrasi pengguna",
                 icon="👥",
             )
-            st.link_button(
-                "Lihat masukan pengguna",
-                url="https://docs.google.com/spreadsheets/d/13vVQ56RuwNWsGZGAycWioF1sKDjQofXklZuWXujvpV0/edit?usp=sharing",
-                icon="📋",
-            )
         else:
             st.page_link(
                 "pages/clustering.py",
@@ -40,11 +35,7 @@ def render_sidebar():
                 label="Panel Regression",
                 icon="📈",
             )
-            st.link_button(
-                "Kasih kita masukanmu",
-                url="https://docs.google.com/forms/d/e/1FAIpQLScx0c3dJIJMMjHX8SOp4dpKDdsznHXLoLRyCW4OSvJnz2vXCg/viewform?usp=dialog",
-                icon="📢",
-            )
+
 
         st.divider()
 
@@ -52,7 +43,18 @@ def render_sidebar():
         if user is not None:
             st.caption(f"Masuk sebagai {user.email}")
         st.button("Logout", icon="🚪", on_click=_handle_logout)
-
         st.divider()
 
-        st.caption("© 2026")
+        if get_role()=="admin":
+            st.link_button(
+                "Lihat masukan pengguna",
+                url="https://docs.google.com/spreadsheets/d/13vVQ56RuwNWsGZGAycWioF1sKDjQofXklZuWXujvpV0/edit?usp=sharing",
+                icon="📋"
+            )
+        else:
+            st.link_button(
+                "Kasih kita masukanmu",
+                url="https://docs.google.com/forms/d/e/1FAIpQLScx0c3dJIJMMjHX8SOp4dpKDdsznHXLoLRyCW4OSvJnz2vXCg/viewform?usp=dialog",
+                icon="📢"
+            )
+        st.caption("kontak pengembang: jervishuang123@gmail.com")

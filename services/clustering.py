@@ -66,13 +66,13 @@ def clustering_transformation(df):
     ]
 
     robust_groups = [
-        "humidity_avg",
-        "wind_avg",
-        "rainfall_mm",
-        "wind_max",
-        "temp_min",
-        "temp_max",
-        "temp_avg",
+        "kelembapan",
+        "kecepatan_angin_rata-rata",
+        "curah_hujan",
+        "kecepatan_angin_maksimum",
+        "suhu_minimum",
+        "suhu_maksimum",
+        "suhu_rata-rata",
     ]
 
     scalers = {}
@@ -168,10 +168,10 @@ def plot_cluster_distribution(X_pca, labels, k):
             color=get_cluster_color(cid),
             s=50,
             alpha=0.7,
-            label=f"Kelompok {cid}",
+            label=f"Klaster {cid}",
         )
 
-    ax.legend(title="Kelompok")
+    ax.legend(title="Klaster")
     ax.set_xlabel("Luas")
     ax.set_ylabel("Produksi")
 
@@ -223,7 +223,7 @@ def plot_silhouette(X_pca, labels, k):
     ax.axvline(x=avg_score, color="red", linestyle="--")
 
     ax.set_xlabel("Nilai silhouette")
-    ax.set_ylabel("Kelompok")
+    ax.set_ylabel("Klaster")
     ax.set_yticks([])
     ax.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
 
@@ -514,10 +514,10 @@ def clustering(df, kmin, kmax, alpha=0.5):
     }
 
 _UNITS = {
-    "rainfall_mm": "Jumlah rata-rata",
-    "temp_min": "Jumlah rata-rata",
-    "temp_max": "Jumlah rata-rata",
-    "temp_avg": "Jumlah rata-rata",
+    "curah_hujan": "Jumlah rata-rata",
+    "suhu_minimum": "Jumlah rata-rata",
+    "suhu_maksimum": "Jumlah rata-rata",
+    "suhu_rata-rata": "Jumlah rata-rata",
 }
  
 def plot_cluster_profile_trends(clustered_df, ncols=3):
@@ -571,7 +571,7 @@ def plot_cluster_profile_trends(clustered_df, ncols=3):
                 markersize=3,
                 linewidth=1.5,
                 color=get_cluster_color(cid),
-                label=f"Kelompok {cid}",
+                label=f"Klaster {cid}",
             )
  
         ax.set_title(var.replace("_", " ").title())

@@ -32,7 +32,7 @@ def get_use_counts(start: date, end: date) -> pd.DataFrame:
     df = pd.DataFrame(res.data or [], columns=USAGE_COLUMNS)
     df["day"] = pd.to_datetime(df["day"])
 
-    full_range = pd.date_range(start, end, freq="D", name="Date")
+    full_range = pd.date_range(start, end, freq="D", name="Tanggal")
     df = (
         df.set_index("day")
         .reindex(full_range, fill_value=0)
@@ -59,7 +59,7 @@ def get_signups(start: date, end: date) -> pd.DataFrame:
 
 def daily_signup_counts(signups: pd.DataFrame, start: date, end: date) -> pd.Series:
     """Registrations per UTC day for every day in [start, end], zero-filled."""
-    full_range = pd.date_range(start, end, freq="D", name="Date")
+    full_range = pd.date_range(start, end, freq="D", name="Tanggal")
     if signups.empty:
         return pd.Series(0, index=full_range, name="Registrations")
 
@@ -73,5 +73,5 @@ def daily_signup_counts(signups: pd.DataFrame, start: date, end: date) -> pd.Ser
     return (
         per_day.reindex(full_range, fill_value=0)
         .astype(int)
-        .rename("Registrations")
+        .rename("Registrasi")
     )

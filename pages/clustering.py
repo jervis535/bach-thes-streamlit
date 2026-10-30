@@ -83,7 +83,7 @@ if uploaded_file is not None:
 
 # Run clustering
 st.divider()
-st.subheader("Analisis kelompok")
+st.subheader("Analisis klaster")
 
 if min_clusters > max_clusters:
     st.error(
@@ -152,7 +152,7 @@ else:
             plt.close(results["fig"])
 
             # 3. Cluster distribution plot
-            st.subheader("Distribusi kelompok")
+            st.subheader("Distribusi klaster")
             st.pyplot(results["fig_cluster"])
             plt.close(results["fig_cluster"])
 
@@ -162,7 +162,7 @@ else:
             plt.close(results["fig_silhouette"])
 
             # 5. Clustered dataset
-            st.subheader("Jumlah wilayah di kelompok")
+            st.subheader("Jumlah wilayah di klaster")
 
             clustered_df = results["clustered_df"]
 
@@ -191,7 +191,7 @@ else:
             ).encode("utf-8")
 
             # 7. Cluster Profile
-            st.subheader("Profile kelompok")
+            st.subheader("Profile klaster")
             st.caption("(Rata-rata setiap variabel)")
  
             profile_fig = plot_cluster_profile_trends(clustered_df)
@@ -202,7 +202,7 @@ else:
                 st.pyplot(profile_fig)
                 plt.close(profile_fig)
  
-            st.subheader("Peta kelompok")
+            st.subheader("Peta klaster")
             try:
                 map_fig, match_df, no_data = build_cluster_map(
                     get_shapefile(), clustered_df
