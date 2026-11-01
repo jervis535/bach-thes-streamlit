@@ -191,7 +191,7 @@ else:
             ).encode("utf-8")
 
             # 7. Cluster Profile
-            st.subheader("Profile klaster")
+            st.subheader("Profil klaster")
             st.caption("(Rata-rata setiap variabel)")
  
             profile_fig = plot_cluster_profile_trends(clustered_df)

@@ -155,7 +155,7 @@ def plot_cluster_distribution(X_pca, labels, k):
     Scatter plot of the clusters using the first two
     principal components (figure 1 of the two cluster plots).
     """
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(6, 4))
 
     x = X_pca[:, 0]
     y = X_pca[:, 1] if X_pca.shape[1] > 1 else np.zeros(len(x))
@@ -166,7 +166,7 @@ def plot_cluster_distribution(X_pca, labels, k):
             x[mask],
             y[mask],
             color=get_cluster_color(cid),
-            s=50,
+            s=20,
             alpha=0.7,
             label=f"Klaster {cid}",
         )
@@ -190,7 +190,7 @@ def plot_silhouette(X_pca, labels, k):
     sample_values = silhouette_samples(X_pca, labels)
     avg_score = silhouette_score(X_pca, labels)
 
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(6, 4))
 
     ax.set_xlim([-0.1, 1])
     # Extra space between clusters so they are visually separated
